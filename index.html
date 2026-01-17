@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thinklet - Smart Study</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        :root { 
+            --p: #8b5cf6; 
+            --bg: #f8fafc; 
+            --sidebar: #1e293b; 
+            --mic: #ec4899; 
+            --ad: #f1f5f9; 
+            --danger: #f43f5e;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
+        
+        /* Sidebar */
+        #sidebar { width: 300px; background: var(--sidebar); color: white; padding: 25px 15px; display: flex; flex-direction: column; box-shadow: 4px 0 10px rgba(0,0,0,0.1); z-index: 10; }
+        .brand-header { text-align: center; margin-bottom: 25px; }
+        .logo-img { width: 90px; height: 90px; filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.4)); border-radius: 50%; }
+        .brand-name { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -1px; margin-top: -5px; }
+
+        /* Sidebar Card List */
+        #card-list-scroll { flex: 1; overflow-y: auto; margin: 15px 0; padding-right: 5px; }
+        .card-list-item { 
+            padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.05); 
+            margin-bottom: 8px; font-size: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .card-list-item:hover { background: rgba(255,255,255,0.1); }
+        .card-list-item.active { border-color: var(--p); background: rgba(139, 92, 246, 0.2); }
+
+        .action-row { display: none; gap: 8px; margin-bottom: 15px; }
+
+        /* User Profile Area */
+        #user-profile { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; display: none; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--p); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #guest-prompt { background: rgba(139, 92, 246, 0.1); padding: 12px; border-radius: 10px; border: 1px dashed var(--p); text-align: center; font-size: 11px; color: #a78bfa; margin-bottom: 15px; cursor: pointer; }
+
+        /* Modal Auth UI */
+        #login-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .login-card { background: white; width: 380px; padding: 35px; border-radius: 24px; text-align: center; color: #1e293b; }
+        
+        .section-label { font-size: 10px; font-weight: 800; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin: 15px 0 8px 0; padding-left: 10px; }
+        .ui-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; }
+        
+        .btn { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
+        .btn-p { background: var(--p); color: white; }
+        .btn-sec { background: rgba(255,255,255,0.1); color: white; font-size: 11px; }
+        .btn-danger { background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid var(--danger); font-size: 11px; }
+        .mic-btn { background: var(--mic); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+
+        /* Main Stage */
+        #main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 20px; }
+        #welcome-msg { color: #64748b; text-align: center; margin: auto; }
+        #study-area { display: none; flex-direction: column; align-items: center; width: 100%; margin: auto; }
+        .scene { width: 550px; height: 340px; perspective: 1200px; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
+        .card-inner.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 40px; border-radius: 30px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); background: white; border: 1px solid #f1f5f9; font-size: 26px; text-align: center; box-sizing: border-box; }
+        .card-back { transform: rotateY(180deg); background: #faf5ff; color: var(--p); border: 3px solid var(--p); }
+
+        #loading { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 4000; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f1f5f9; border-top: 4px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="login-modal">
+    <div class="login-card">
+        <h2 style="margin:0;">Sign in to Thinklet</h2>
+        <p style="color:#64748b; font-size: 14px; margin-bottom:25px;">Connect your account to sync your library to the cloud.</p>
+        <button class="btn btn-p" onclick="handleGoogleLogin()">Continue with Google</button>
+        <button class="btn" style="margin-top:10px; background:none; color:#64748b;" onclick="closeLogin()">Cancel</button>
+    </div>
+</div>
+
+<div id="loading"><div class="spinner"></div><p id="load-txt" style="color:var(--p); font-weight:bold; margin-top:15px;"></p></div>
+
+<div id="sidebar">
+    <div class="brand-header">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABk..." class="logo-img" alt="Thinklet Logo">
+        <div class="brand-name">Thinklet</div>
+    </div>
+
+    <div id="user-profile">
+        <div class="avatar" id="user-initial">?</div>
+        <div class="user-info" style="flex:1;">
+            <div id="user-name" style="font-weight:bold; font-size:12px;">Student</div>
+            <div style="font-size:10px; color:#94a3b8;">Cloud Sync On</div>
+        </div>
+        <button onclick="handleLogout()" style="background:none; border:none; color:var(--danger); cursor:pointer;">✕</button>
+    </div>
+
+    <div id="guest-prompt" onclick="openLogin()">Sign in to save progress ☁️</div>
+
+    <div class="section-label">Identity</div>
+    <div class="ui-box">
+        <input type="password" id="api-key" placeholder="API Access Token" style="width:100%; padding:8px; border-radius:6px; border:none; background:#0f172a; color:white; font-size:12px;">
+        <button class="btn btn-black" style="margin-top:8px; padding:8px;" onclick="saveKey()">Connect AI</button>
+        <div id="api-status" style="font-size:10px; margin-top:6px; display:none; text-align:center;"></div>
+    </div>
+
+    <div class="section-label">Current Deck</div>
+    <div id="card-list-scroll">
+        <div style="font-size: 11px; color: #64748b; text-align: center; margin-top: 10px;">No active cards</div>
+    </div>
+
+    <div id="deck-actions" class="action-row">
+        <button class="btn btn-sec" style="flex: 2;" onclick="saveDeckAction()">💾 Save</button>
+        <button class="btn btn-danger" style="flex: 1;" onclick="clearDeck()">Clear</button>
+    </div>
+
+    <div class="section-label">Input</div>
+    <div class="ui-box"><button id="mic-btn" class="mic-btn" onclick="micAction()">🎤 Voice Note</button></div>
+
+    <div class="section-label">Files</div>
+    <div class="ui-box">
+        <input type="file" id="pdf-input" hidden onchange="processPDF()">
+        <button class="btn btn-p" onclick="document.getElementById('pdf-input').click()">Scan PDF</button>
+    </div>
+</div>
+
+<div id="main">
+    <div id="welcome-msg">
+        <div style="font-size: 80px; margin-bottom: 20px;">🧠</div>
+        <h2 style="color:#1e293b; margin:0;">Thinklet Library</h2>
+        <p>Drop a PDF or record a note to start your stack.</p>
+    </div>
+
+    <div id="study-area">
+        <div class="scene">
+            <div class="card-inner" id="card-inner" onclick="flipCard()">
+                <div class="card-face card-front" id="q-text"></div>
+                <div class="card-face card-back" id="a-text"></div>
+            </div>
+        </div>
+        <div style="margin-top: 40px; display: flex; gap: 20px;">
+            <button class="btn" style="width:70px; background:white; border:1px solid #e2e8f0; color:#64748b;" onclick="prevCard()">←</button>
+            <button class="btn btn-p" style="width: 160px;" onclick="flipCard()">REVEAL</button>
+            <button class="btn" style="width:70px; background:white; border:1px solid #e2e8f0; color:#64748b;" onclick="nextCard()">→</button>
+        </div>
+        <p id="counter" style="color: #94a3b8; font-weight: 800; margin-top: 20px;"></p>
+    </div>
+</div>
+
+<script>
+    let DECK = []; let INDEX = 0; let IS_LOGGED_IN = false;
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    function openLogin() { const m = document.getElementById('login-modal'); m.style.display = "flex"; setTimeout(() => m.style.opacity = "1", 10); }
+    function closeLogin() { const m = document.getElementById('login-modal'); m.style.opacity = "0"; setTimeout(() => m.style.display = "none", 300); }
+    
+    function micAction() { if (!IS_LOGGED_IN) openLogin(); else alert("Mic triggered!"); }
+    
+    function clearDeck() {
+        if(confirm("Discard this stack?")) {
+            DECK = []; INDEX = 0;
+            updateSidebarList();
+            document.getElementById('study-area').style.display = 'none';
+            document.getElementById('welcome-msg').style.display = 'block';
+        }
+    }
+
+    function updateSidebarList() {
+        const container = document.getElementById('card-list-scroll');
+        const actions = document.getElementById('deck-actions');
+        container.innerHTML = "";
+        if (DECK.length > 0) {
+            actions.style.display = "flex";
+            DECK.forEach((card, i) => {
+                const div = document.createElement('div');
+                div.className = `card-list-item ${i === INDEX ? 'active' : ''}`;
+                div.innerText = `${i+1}. ${card.q}`;
+                div.onclick = () => { INDEX = i; renderCard(); };
+                container.appendChild(div);
+            });
+        } else {
+            actions.style.display = "none";
+            container.innerHTML = '<div style="font-size: 11px; color: #64748b; text-align: center; margin-top: 10px;">No active cards</div>';
+        }
+    }
+
+    async function processPDF() {
+        const file = document.getElementById('pdf-input').files[0];
+        if (!file) return;
+        showLoad(true, "Scanning PDF...");
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            let text = "";
+            for (let i = 1; i <= Math.min(pdf.numPages, 5); i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(s => s.str).join(" ") + " ";
+            }
+            magicCreateCards(text);
+        } catch (e) { alert("PDF Error"); showLoad(false); }
+    }
+
+    async function magicCreateCards(text) {
+        const key = document.getElementById('api-key').value || localStorage.getItem('oa_key');
+        if(!key) { alert("Please enter API Key"); showLoad(false); return; }
+        showLoad(true, "AI Building Cards...");
+        try {
+            const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+                body: JSON.stringify({
+                    model: "gpt-4o-mini",
+                    messages: [{ role: "system", content: "Create 5 cards. Format: Q: | A:" }, { role: "user", content: text.substring(0, 4000) }]
+                })
+            });
+            const data = await resp.json();
+            const lines = data.choices[0].message.content.split('\n').filter(l => l.includes('|'));
+            DECK = lines.map(line => {
+                const p = line.split('|');
+                return { q: p[0].replace('Q:', '').trim(), a: p[1].replace('A:', '').trim() };
+            });
+            INDEX = 0; renderCard();
+            document.getElementById('welcome-msg').style.display = 'none';
+            document.getElementById('study-area').style.display = 'flex';
+        } catch (e) { alert("AI Error"); }
+        showLoad(false);
+    }
+
+    function renderCard() {
+        document.getElementById('card-inner').classList.remove('is-flipped');
+        document.getElementById('q-text').innerText = DECK[INDEX].q;
+        document.getElementById('a-text').innerText = DECK[INDEX].a;
+        document.getElementById('counter').innerText = `CARD ${INDEX + 1} OF ${DECK.length}`;
+        updateSidebarList();
+    }
+    function showLoad(s, t) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; document.getElementById('load-txt').innerText = t; }
+    function flipCard() { document.getElementById('card-inner').classList.toggle('is-flipped'); }
+    function nextCard() { if (INDEX < DECK.length - 1) { INDEX++; renderCard(); } }
+    function prevCard() { if (INDEX > 0) { INDEX--; renderCard(); } }
+    function saveKey() { localStorage.setItem('oa_key', document.getElementById('api-key').value); alert("Key Saved"); }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCTm02OZn3Lk97bv1d6fuYjtu4OVIAakRg",
+        authDomain: "thinklet-c8b28.firebaseapp.com",
+        projectId: "thinklet-c8b28",
+        storageBucket: "thinklet-c8b28.firebasestorage.app",
+        messagingSenderId: "256780697939",
+        appId: "1:256780697939:web:356d3a57f74e627c8821a6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.handleGoogleLogin = async () => {
+        const provider = new GoogleAuthProvider();
+        try { await signInWithPopup(auth, provider); } catch (e) { alert("Login failed"); }
+    };
+
+    window.handleLogout = () => signOut(auth);
+
+    window.saveDeckAction = async () => {
+        if (!auth.currentUser) return openLogin();
+        if (DECK.length === 0) return alert("No cards to save!");
+        showLoad(true, "Syncing to Cloud...");
+        try {
+            await addDoc(collection(db, "users", auth.currentUser.uid, "stacks"), {
+                cards: DECK,
+                timestamp: serverTimestamp()
+            });
+            alert("Success! Stack saved to Thinklet Cloud.");
+        } catch (e) { alert("Save Error: " + e.message); }
+        showLoad(false);
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            IS_LOGGED_IN = true;
+            document.getElementById('guest-prompt').style.display = "none";
+            document.getElementById('user-profile').style.display = "flex";
+            document.getElementById('user-name').innerText = user.displayName;
+            document.getElementById('user-initial').innerText = user.displayName.charAt(0);
+            closeLogin();
+        } else {
+            IS_LOGGED_IN = false;
+            document.getElementById('guest-prompt').style.display = "block";
+            document.getElementById('user-profile').style.display = "none";
+        }
+    });
+</script>
+</body>
+</html>
