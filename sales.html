@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalBoost — The AI Unfair Advantage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #06090f;
+      --bg2: #0d1117;
+      --bg3: #161b22;
+      --accent: #00e5a0;
+      --purple: #7c5cfc;
+      --blue: #58a6ff;
+      --text-1: #e6edf3;
+      --text-2: #8b949e;
+      --text-3: #484f58;
+      --border: rgba(240, 246, 252, 0.1);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Top Warning Bar */
+    .scarcity-bar {
+      background: rgba(248, 81, 73, 0.15);
+      color: #ff7b72;
+      text-align: center;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(248, 81, 73, 0.3);
+    }
+
+    .scarcity-bar span {
+      color: white;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 100px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(0, 229, 160, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .urgency {
+      display: inline-block;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--blue);
+      padding: 8px 20px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      line-height: 1.1;
+      max-width: 850px;
+      margin: 0 auto 20px;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 .grad {
+      background: linear-gradient(135deg, var(--accent), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: var(--text-2);
+      max-width: 680px;
+      margin: 0 auto 36px;
+    }
+
+    .cta {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 18px 44px;
+      font-size: 17px;
+      font-weight: 800;
+      border-radius: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 0 24px rgba(0, 229, 160, 0.2);
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 229, 160, 0.4);
+    }
+
+    .hero-note {
+      font-size: 13px;
+      color: var(--text-3);
+      margin-top: 14px;
+      font-weight: 600;
+    }
+
+    /* FOMO Section */
+    .fomo-banner {
+      max-width: 900px;
+      margin: 0 auto 60px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .fomo-banner::before {
+      content: 'THE HARSH TRUTH';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f85149;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    .fomo-banner h2 {
+      font-size: 24px;
+      color: white;
+      margin-bottom: 16px;
+    }
+
+    .fomo-banner p {
+      color: var(--text-2);
+      font-size: 16px;
+      margin-bottom: 0;
+    }
+
+    /* Features */
+    .section {
+      padding: 40px 24px 80px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-2);
+      font-size: 16px;
+      margin-bottom: 48px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.2s;
+    }
+
+    .feat-card:hover {
+      border-color: rgba(0, 229, 160, 0.3);
+      transform: translateY(-4px);
+      background: var(--bg3);
+    }
+
+    .feat-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .feat-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: white;
+    }
+
+    .feat-card p {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .price-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      position: relative;
+    }
+
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 40px rgba(0, 229, 160, 0.1);
+      transform: scale(1.02);
+    }
+
+    .price-card.featured::before {
+      content: 'ONLY 2 SPOTS LEFT';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .price-card h3 {
+      font-size: 22px;
+      margin-bottom: 4px;
+      color: white;
+    }
+
+    .price-amount {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 16px 0 8px;
+    }
+
+    .price-amount span {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-3);
+    }
+
+    .price-desc {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 24px;
+      min-height: 40px;
+    }
+
+    .price-features {
+      text-align: left;
+      list-style: none;
+      margin-bottom: 24px;
+    }
+
+    .price-features li {
+      font-size: 13px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+    }
+
+    .price-features li::before {
+      content: '✓ ';
+      color: var(--accent);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .price-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: white;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .price-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .price-card.featured .price-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+    }
+
+    .price-card.featured .price-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 229, 160, 0.3);
+    }
+
+    /* Bottom CTA */
+    .pain {
+      text-align: center;
+      padding: 80px 24px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pain h2 {
+      font-size: 32px;
+      max-width: 700px;
+      margin: 0 auto 24px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .pain p {
+      color: var(--text-2);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px;
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    @media (max-width: 768px) {
+
+      .features-grid,
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .price-card.featured {
+        transform: scale(1);
+        margin: 20px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="scarcity-bar">
+    ⚠️ GEOGRAPHIC EXCLUSIVITY: We only partner with ONE business per niche per city. <span>Check if your zip code is
+      still available.</span>
+  </div>
+
+  <div class="hero">
+    <div class="urgency">The AI Revolution Is Here</div>
+    <h1>While you sleep, your competitors' AI is <span class="grad">booking your customers.</span></h1>
+    <p>If your website is just a digital brochure with a "Contact Us" form, you are losing money to competitors who
+      reply in 2 seconds and book appointments at 3 AM.</p>
+    <a href="/onboarding.html" class="cta">Secure Your Exclusivity & Start Trial</a>
+    <div class="hero-note">Full setup in 5 minutes. Protect your local territory today.</div>
+  </div>
+
+  <div class="fomo-banner">
+    <h2>The landscape is splitting in two.</h2>
+    <p>There are local businesses leveraging Autonomous AI Agents to operate 24/7, capture every lead, and market
+      themselves on autopilot. And there are businesses hoping people will leave a voicemail. <strong>Which one are you
+        going to be?</strong></p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Not a Chatbot. An Autonomous Agent.</div>
+    <div class="section-sub">We don't build scripts that say "please call during business hours." We deploy intelligent
+      agents that actually do the work of a human employee.</div>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📅</div>
+        <h3>Live Calendar Scheduling</h3>
+        <p>Your AI Agent doesn't just collect emails. It dynamically checks your availability, negotiates times, and
+          formally books appointments directly onto your calendar.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <h3>Direct CRM Webhooks</h3>
+        <p>Stop doing manual data entry. The exact second a lead is captured, your Agent beams the data instantly into
+          your GoHighLevel, HubSpot, or Zapier pipeline.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🚀</div>
+        <h3>Autopilot Marketing</h3>
+        <p>Every Monday at 8 AM, your Agent generates highly-targeted social media posts and email campaigns based on
+          your specific audience DNA, delivered straight to your inbox.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📡</div>
+        <h3>Social Reconnaissance</h3>
+        <p>Your Agent scans local subreddits and social channels 24/7 looking for people complaining about your
+          competitors, flagging them as warm leads.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🧠</div>
+        <h3>Trained on Your Brain</h3>
+        <p>We train the Agent on your actual pricing, PDFs, and policies. It sounds exactly like you, defending your
+          brand and upselling your services effortlessly.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <h3>White-Glove Branding</h3>
+        <p>A sleek, Intercom-grade widget that lives on your site. Custom avatars, your brand colors, and dynamic
+          quick-reply buttons. It looks like you spent $50,000 on software.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="pricing">
+    <div class="section-title">Claim Your Territory</div>
+    <div class="section-sub">We strictly cap our client roster to maintain server performance and guarantee exclusive
+      local leads. Once your competitor signs up, you cannot.</div>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>The Receptionist</h3>
+        <div class="price-amount">$297<span>/mo</span></div>
+        <div class="price-desc">The ultimate 24/7 lead capture and booking agent.</div>
+        <ul class="price-features">
+          <li>Autonomous AI Chat Agent</li>
+          <li>Live Calendar Booking</li>
+          <li>GoHighLevel / Zapier Webhooks</li>
+          <li>Embeddable Premium Widget</li>
+          <li>Lead CRM Dashboard</li>
+        </ul>
+        <button class="price-btn" onclick="window.location.href='/onboarding.html'">Apply For Access</button>
+      </div>
+      <div class="price-card featured">
+        <h3>The Marketer</h3>
+        <div class="price-amount" style="color:var(--accent)">$497<span>/mo</span></div>
+        <div class="price-desc">The Agent + The Autopilot Marketing Engine.</div>
+        <ul class="price-features">
+          <li>Everything in Receptionist</li>
+          <li>Weekly Autopilot Content (Cron)</li>
+          <li>Social Media Draft Generation</li>
+          <li>Email Sequence Builder</li>
+          <li>Custom Target Audience DNA</li>
+          <li>Priority Support SLA</li>
+        </ul>
+        <button class="price-btn" onclick="window.location.href='/onboarding.html'">Claim Your Exclusivity</button>
+      </div>
+      <div class="price-card">
+        <h3>The Agency</h3>
+        <div class="price-amount" style="color:var(--blue)">$897<span>/mo</span></div>
+        <div class="price-desc">Complete market domination and social monitoring.</div>
+        <ul class="price-features">
+          <li>Everything in Marketer</li>
+          <li>24/7 Social Monitoring (Reddit)</li>
+          <li>Competitor Sentiment Tracking</li>
+          <li>Done-For-You SEO Page Factory</li>
+          <li>Video Script Generation</li>
+          <li>Dedicated Account Manager</li>
+        </ul>
+        <button class="price-btn" onclick="window.location.href='/onboarding.html'">Apply For Access</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pain">
+    <h2>Don't let the business down the street steal your unfair advantage.</h2>
+    <p>The cost of this software is entirely covered by the first appointment your AI Agent books at 2:00 AM on a
+      Sunday. Stop leaving money on the table.</p>
+    <a href="/onboarding.html" class="cta" style="background: white; color: var(--bg);">Lock In Your 14-Day Free
+      Trial</a>
+  </div>
+
+  <footer>
+    <p>© 2026 LocalBoost. Built for local businesses that refuse to stay local.</p>
+  </footer>
+</body>
+
+</html>
